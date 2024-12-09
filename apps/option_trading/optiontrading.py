@@ -7,11 +7,15 @@ from arch import arch_model
 from flask import Blueprint, render_template
 from scipy.stats import linregress
 import asyncio
+import os
+from dotenv import load_dotenv
 
 
+load_dotenv()
 
 # Alpha Vantage API Key
-API_KEY = "URZENY6PEJWF13MM"
+API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+
 
 # ---- Data Fetching ----
 import aiohttp
@@ -396,7 +400,7 @@ def plot_cumulative_returns(strategy_returns):
 import openai
 
 # Add your OpenAI API key here
-openai.api_key = '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'  # Replace with your actual OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def call_openai_api(prompt):
     try:

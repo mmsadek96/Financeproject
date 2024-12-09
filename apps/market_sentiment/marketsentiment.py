@@ -1,13 +1,16 @@
 import requests
-import aiohttp
 import asyncio
 import openai
 import logging
 from flask import Blueprint, render_template, request
 from cachetools import TTLCache
 import time
+import os
+from dotenv import load_dotenv
 
-# Blueprint definition
+
+load_dotenv()
+
 market_sentiment_bp = Blueprint(
     "market_sentiment", __name__, template_folder="templates"
 )
@@ -17,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # API Keys
 NEWS_API_KEY = "2daec4b767b94998ada443b03b175081"
-openai.api_key = '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'  # Replace with your actual OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 # Cache setup
@@ -63,7 +66,7 @@ async def analyze_news_with_openai(articles, company_name, semaphore, batch_size
                     prompt += f"Article {j}:\nTitle: {title}\nContent: {description} {content[:1000]}\n\n"
 
                 response = await openai.ChatCompletion.acreate(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": "You are a financial analyst."},
                         {"role": "user", "content": prompt},

@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import requests
 import logging
@@ -12,10 +11,13 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 import openai
 from markdown2 import markdown # For converting analysis markdown to HTML
+import os
+from dotenv import load_dotenv
 
 
 # Configure Flask app
 app = Flask(__name__)
+load_dotenv()
 
 fundamentalanalysis_bp = Blueprint(
     "fundamentalanalysis", __name__, template_folder="templates"
@@ -25,8 +27,8 @@ fundamentalanalysis_bp = Blueprint(
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # API Keys
-API_KEY = 'URZENY6PEJWF13MM'
-OPENAI_API_KEY = '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'  # Replace with your actual OpenAI API key
+API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not API_KEY or not OPENAI_API_KEY:
     logging.error("API keys are missing.")
