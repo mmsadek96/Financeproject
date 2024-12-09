@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option Trading Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Option Trading</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="text-center">Welcome to the Option Trading Dashboard</h1>
+        <p class="text-center">Analyze stocks and options data with advanced strategies.</p>
+
+        <form class="mt-4" id="tradingForm">
+            <div class="mb-3">
+                <label for="stockSymbols" class="form-label">Enter Stock Symbols (comma-separated):</label>
+                <input type="text" class="form-control" id="stockSymbols" name="symbols" placeholder="e.g., AAPL, TSLA, AMZN" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Analyze</button>
+        </form>
+
+        <div class="mt-4" id="results">
+            <!-- Results will be displayed here dynamically -->
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 py-3">
+        <p>&copy; 2024 Option Trading Analytics</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.getElementById("tradingForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const symbols = document.getElementById("stockSymbols").value;
+            const resultContainer = document.getElementById("results");
+            resultContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status"></div>
+                    <p>Loading results...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch("/option_trading/run_main", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({ symbols })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.results && data.results.length > 0) {
+                        let html = '<table class="table table-striped mt-4">';
+                        html += `
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Stock Price</th>
+                                    <th>Historical Volatility</th>
+                                    <th>Call Price</th>
+                                    <th>Put Price</th>
+                                    <th>Analysis</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                        data.results.forEach(result => {
+                            html += `
+                                <tr>
+                                    <td>${result.symbol}</td>
+                                    <td>${result.stock_price ? result.stock_price.toFixed(2) : "N/A"}</td>
+                                    <td>${result.historical_volatility ? result.historical_volatility.toFixed(4) : "N/A"}</td>
+                                    <td>${result.call_price ? result.call_price.toFixed(2) : "N/A"}</td>
+                                    <td>${result.put_price ? result.put_price.toFixed(2) : "N/A"}</td>
+                                    <td>
+                                        <details>
+                                            <summary>View Analysis</summary>
+                                            <div>${marked.parse(result.analysis)}</div>
+                                        </details>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        html += "</tbody></table>";
+                        resultContainer.innerHTML = html;
+                    } else {
+                        resultContainer.innerHTML = `<div class="alert alert-warning">No results found for the given symbols.</div>`;
+                    }
+                } else {
+                    const errorData = await response.json();
+                    resultContainer.innerHTML = `<div class="alert alert-danger">Error: ${errorData.error || "Unknown error occurred."}</div>`;
+                }
+            } catch (error) {
+                resultContainer.innerHTML = `<div class="alert alert-danger">An unexpected error occurred: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
